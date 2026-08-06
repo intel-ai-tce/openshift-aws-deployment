@@ -171,7 +171,46 @@ Show the selected kubeconfig with:
 ./container.sh kubeconfig
 ```
 
-## 4. Destroy
+## 4. Optional: enable NVIDIA GPUs
+
+GPU enablement is a post-install step. The GPU-capable worker must already be part of the cluster.
+
+The installer supports mixed CPU-only and NVIDIA GPU workers. Node Feature Discovery labels NVIDIA nodes, and the NVIDIA GPU Operator deploys its GPU operands only to those nodes; CPU-only workers remain normal workers.
+
+By default, `gpu-install` uses the ClusterPolicy example shipped by the installed GPU Operator. To pin a driver for reproducible GPU nodes, set optional overrides in the external `config.env`:
+
+```bash
+NVIDIA_DRIVER_REPOSITORY="nvcr.io/nvidia"
+NVIDIA_DRIVER_IMAGE="driver"
+NVIDIA_DRIVER_VERSION="<supported-driver-version>"
+```
+
+Then, on the bastion:
+
+```bash
+./container.sh gpu-install
+./container.sh gpu-status
+```
+
+`gpu-install` installs the Red Hat Node Feature Discovery Operator and the certified NVIDIA GPU Operator, then creates their required custom resources.
+
+After installation, a GPU worker should advertise resources such as:
+
+```text
+nvidia.com/gpu: 2
+```
+
+A pod can request both GPUs with:
+
+```yaml
+resources:
+  limits:
+    nvidia.com/gpu: 2
+```
+
+This step does not create the AWS GPU worker itself. For an all-GPU worker pool, set `WORKER_INSTANCE_TYPE` before cluster deployment. For a mixed CPU/GPU cluster, add the GPU worker separately with the OpenShift Machine API and then run `gpu-install`.
+
+## 5. Destroy
 
 On the bastion:
 
@@ -218,6 +257,8 @@ Never commit:
 | `render-install-config.sh` | Generate OpenShift install config |
 | `install-cluster.sh` | Create/resume cluster |
 | `status.sh` | Show installer and cluster status |
+| `install-nvidia-gpu-operator.sh` | Install NFD and NVIDIA GPU Operator after cluster deployment |
+| `gpu-status.sh` | Show NVIDIA discovery, GPU capacity, and operator pods |
 | `destroy-cluster.sh` | Destroy cluster through installer metadata |
 | `terminate-bastion.sh` | Terminate bastion |
 | `check-upstream-safe.sh` | Guard against publishing local/account data |

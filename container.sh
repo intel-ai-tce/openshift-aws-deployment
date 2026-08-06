@@ -47,6 +47,8 @@ Usage:
   ./container.sh deploy
   ./container.sh status
   ./container.sh oc <oc arguments>
+  ./container.sh gpu-install
+  ./container.sh gpu-status
   ./container.sh logs
   ./container.sh destroy-cluster
   ./container.sh exec <command> [arguments...]
@@ -230,6 +232,14 @@ case "$cmd" in
     run_container bash -c './preflight.sh && ./render-install-config.sh && ./install-cluster.sh'
     ;;
   status) run_container ./status.sh ;;
+  gpu-install)
+    require_existing_kubeconfig
+    run_container ./install-nvidia-gpu-operator.sh
+    ;;
+  gpu-status)
+    require_existing_kubeconfig
+    run_container ./gpu-status.sh
+    ;;
   oc)
     require_existing_kubeconfig
     run_container oc "$@"

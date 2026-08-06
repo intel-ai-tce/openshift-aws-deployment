@@ -4,19 +4,55 @@ Container-first scripts for deploying a private OpenShift cluster into an existi
 
 ## Architecture
 
-```text
-Workstation
-  |
-  | SSH
-  v
-Public bastion
-  |
-  | Docker toolbox: aws + oc + openshift-install
-  v
-Private OpenShift cluster
-  |- control-plane nodes
-  `- worker nodes
-```
+```mermaid
+%%{init: {
+  "flowchart": {
+    "htmlLabels": true,
+    "nodeSpacing": 60,
+    "rankSpacing": 80,
+    "curve": "basis"
+  }
+}}%%
+
+flowchart TB
+
+    Intel["Intel Workstation"]
+
+    subgraph AWS["AWS — us-west-2"]
+        subgraph VPC["Intel VPC"]
+
+            subgraph PUB["Public Subnet"]
+                PubInfo["subnet-062ac395426b3ba1a<br/>10.0.144.0/20"]
+
+                Bastion["OpenShift Bastion<br/>m8i.large<br/>Public IPv4"]
+            end
+
+            subgraph PRIV["Private Subnet"]
+                PrivInfo["subnet-0526424c31d749532<br/>10.0.32.0/19"]
+
+                API["Private API<br/>api.cpu-test.ocp-test.internal:6443"]
+
+                Masters["3 Control Plane Nodes<br/>m8i.4xlarge"]
+
+                Workers["2 Worker Nodes<br/>m8i.24xlarge"]
+
+                Bootstrap["Bootstrap Node<br/>Temporary"]
+            end
+        end
+    end
+
+    Intel -->|"SSH TCP/22"| Bastion
+
+    Bastion -->|"openshift-install<br/>oc commands"| API
+
+    API --> Masters
+    API --> Workers
+
+    Bootstrap -.->|"Install only"| Masters
+
+    PubInfo --- Bastion
+    PrivInfo --- API
+````
 
 The repository intentionally contains **no AWS-account-specific values or secrets**. Environment configuration and credentials are installed outside the source checkout.
 

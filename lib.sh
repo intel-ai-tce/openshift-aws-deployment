@@ -38,6 +38,8 @@ unset _cfg_var
 AWS_PROFILE="${AWS_PROFILE:-default}"
 OCP_CHANNEL="${OCP_CHANNEL:-stable-4.20}"
 OCP_TOOLBOX_IMAGE="${OCP_TOOLBOX_IMAGE:-ocp-aws-toolbox:4.20}"
+SSH_PROXY_HOST="${SSH_PROXY_HOST:-}"
+SSH_PROXY_PORT="${SSH_PROXY_PORT:-1080}"
 
 if [[ "$INSTALL_DIR" != /* ]]; then
   INSTALL_DIR="$ROOT_DIR/$INSTALL_DIR"
@@ -54,6 +56,35 @@ require_cmd() {
       exit 1
     fi
   done
+}
+
+
+configure_ssh_args() {
+  local connect_timeout="${1:-}"
+
+  SSH_COMMON_ARGS=(
+    -i "$SSH_PRIVATE_KEY"
+    -o StrictHostKeyChecking=accept-new
+  )
+
+  if [[ -n "$connect_timeout" ]]; then
+    SSH_COMMON_ARGS+=( -o "ConnectTimeout=$connect_timeout" )
+  fi
+
+  if [[ -n "$SSH_PROXY_HOST" ]]; then
+    require_cmd nc
+    SSH_COMMON_ARGS+=(
+      -o "ProxyCommand=nc -X 5 -x ${SSH_PROXY_HOST}:${SSH_PROXY_PORT} %h %p"
+    )
+  fi
+}
+
+print_ssh_proxy_status() {
+  if [[ -n "$SSH_PROXY_HOST" ]]; then
+    echo "SSH transport: SOCKS5 proxy ${SSH_PROXY_HOST}:${SSH_PROXY_PORT}"
+  else
+    echo "SSH transport: direct"
+  fi
 }
 
 aws_identity_check() {

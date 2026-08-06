@@ -6,8 +6,9 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$ROOT_DIR/lib.sh"
 
 load_bastion_state
+configure_ssh_args
+print_ssh_proxy_status
 
 exec ssh \
-  -i "$SSH_PRIVATE_KEY" \
-  -o StrictHostKeyChecking=accept-new \
+  "${SSH_COMMON_ARGS[@]}" \
   "ec2-user@$BASTION_IP"

@@ -149,4 +149,8 @@ echo "  Instance ID: $BASTION_ID"
 echo "  Public IP:   $BASTION_IP"
 echo
 echo "Connect with:"
-echo "  ssh -i '$SSH_PRIVATE_KEY' ec2-user@$BASTION_IP"
+if [[ -n "$SSH_PROXY_HOST" ]]; then
+  echo "  ssh -i '$SSH_PRIVATE_KEY' -o 'ProxyCommand=nc -X 5 -x ${SSH_PROXY_HOST}:${SSH_PROXY_PORT} %h %p' ec2-user@$BASTION_IP"
+else
+  echo "  ssh -i '$SSH_PRIVATE_KEY' ec2-user@$BASTION_IP"
+fi

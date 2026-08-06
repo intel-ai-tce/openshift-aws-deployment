@@ -193,3 +193,20 @@ Never commit:
 | `destroy-cluster.sh` | Destroy cluster through installer metadata |
 | `terminate-bastion.sh` | Terminate bastion |
 | `check-upstream-safe.sh` | Guard against publishing local/account data |
+
+## Optional SOCKS5 proxy for bastion SSH
+
+If direct outbound SSH is blocked, set the proxy only in the external private configuration file, not in the repository:
+
+```bash
+SSH_PROXY_HOST="proxy-us.intel.com"
+SSH_PROXY_PORT="1080"
+```
+
+When `SSH_PROXY_HOST` is non-empty, `copy-to-bastion.sh` and `ssh-bastion.sh` automatically use:
+
+```text
+ProxyCommand=nc -X 5 -x <proxy-host>:<proxy-port> %h %p
+```
+
+Leave `SSH_PROXY_HOST` empty for normal direct SSH. The workstation must have a netcat implementation that supports `-X` and `-x`.

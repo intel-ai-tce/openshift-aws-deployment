@@ -112,6 +112,34 @@ AWS authentication can come from `~/.aws`, environment variables, or preferably 
 
 The SSH **private** key is never copied to the bastion. If the bastion uses an IAM instance profile, `~/.aws/credentials` is unnecessary.
 
+### Create a new bastion and a new cluster
+
+To keep the existing environment and create a second one, copy the private configuration and change only the bastion and cluster names:
+
+```bash
+cp ~/.config/openshift-aws/config.env ~/.config/openshift-aws/config-new.env
+vim ~/.config/openshift-aws/config-new.env
+```
+
+For example:
+
+```bash
+BASTION_NAME="ocp-public-bastion-2"
+CLUSTER_NAME="cpu-test-2"
+```
+
+Keep the existing AWS account, VPC, subnets, Route53 zone, security groups, credentials, and instance types unless a different environment is desired. Then use the new configuration:
+
+```bash
+export CONFIG_FILE="$HOME/.config/openshift-aws/config-new.env"
+
+./create-bastion.sh
+./copy-to-bastion.sh
+./ssh-bastion.sh
+```
+
+On the new bastion, continue with the normal container workflow below.
+
 ## 3. Bastion: container workflow
 
 ```bash
